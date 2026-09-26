@@ -114,7 +114,12 @@ struct Flow: Layout {
 extension EnvironmentValues {
     @Entry var compact = false
     @Entry var appeared = false
+    /// Steps of the `-autoplay` script (screen recordings); 0 when not autoplaying.
+    @Entry var autoplayTick = 0
 }
+
+/// One pass of the autoplay script, in ticks of 0.9s.
+let autoplayCycle = 26
 
 /// `.piece`: placed and rotated on a wide board, static in the phone layout,
 /// fading up 10px on load after its delay.

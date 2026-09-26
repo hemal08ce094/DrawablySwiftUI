@@ -35,6 +35,9 @@ enum Section: String, CaseIterable, Identifiable {
 struct DemoPage: View {
     @State private var appeared = false
     @State private var frames: [Section: CGRect] = [:]
+    @State private var tick = 0
+    /// `-autoplay` drives the controls on a loop for screen recordings.
+    private let autoplay = ProcessInfo.processInfo.arguments.contains("-autoplay")
 
     var body: some View {
         GeometryReader { geo in
@@ -51,6 +54,12 @@ struct DemoPage: View {
                     .drawablyArrows()
                 }
                 .coordinateSpace(.named("page"))
+                .onChange(of: tick) { _, t in
+                    let stops: [Int: Section] = [11: .install, 14: .api, 17: .compose, 24: .top]
+                    if let s = stops[t % autoplayCycle] {
+                        withAnimation(.smooth(duration: 0.9)) { proxy.scrollTo(s, anchor: .top) }
+                    }
+                }
                 .scrollIndicators(.automatic)
                 .overlay(alignment: .leading) {
                     if size.width >= 840 {
@@ -69,7 +78,16 @@ struct DemoPage: View {
         .overlay { PaperGrain().ignoresSafeArea() }
         .drawably(stroke: Palette.pen, fill: Palette.pen, paper: Palette.paper)
         .environment(\.appeared, appeared)
+        .environment(\.autoplayTick, tick)
         .onAppear { appeared = true }
+        .task {
+            guard autoplay else { return }
+            try? await Task.sleep(for: .seconds(1.5))
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .milliseconds(900))
+                tick += 1
+            }
+        }
     }
 
     /// The TOC fades in once the hero is (almost) out of view.
@@ -158,7 +176,9 @@ struct Hero: View {
     @State private var name = ""
     @State private var tool = "Pen"
     @State private var note = ""
+    @State private var remount = 0
     @Environment(\.compact) private var compact
+    @Environment(\.autoplayTick) private var tick
 
     var body: some View {
         let wide = size.width > 720
@@ -237,11 +257,29 @@ struct Hero: View {
             .frame(width: wide ? min(220, size.width * 0.42) : min(260, size.width - 40))
             .piece(right: 11, bottom: 12, rotate: 3, delay: 0.56)
         }
+        // a fresh mount is a fresh sketch
+        .id(remount)
         .drawablyArrow(from: "hint", to: "done")
+        .onChange(of: tick) { _, t in play(t % autoplayCycle) }
         .overlay(alignment: .topTrailing) {
             AgentButton()
                 .padding(.top, 14)
                 .padding(.trailing, 16)
+        }
+    }
+
+    private func play(_ step: Int) {
+        let typed = ["", "A", "Ad", "Ada", "Ada L"]
+        switch step {
+        case 1: ship = false
+        case 2: ship = true
+        case 3: ink = "pencil"
+        case 4: toggled = true
+        case 5...8: name = typed[step - 4]
+        case 9: tool = "Marker"
+        case 10: remount += 1
+        case 25: ink = "pen"; toggled = false; name = ""; tool = "Pen"
+        default: break
         }
     }
 
@@ -300,7 +338,8 @@ struct InstallBoard: View {
                 Button { flash.copy(command) } label: {
                     HStack(spacing: 8) {
                         Text("$").foregroundStyle(Palette.ink3)
-                        Text(command)
+                        // phones show the repo; the copy is always the full line
+                        Text(wide ? command : "hemal08ce094/DrawablySwiftUI")
                             .foregroundStyle(Palette.ink)
                             .lineLimit(1)
                             .minimumScaleFactor(0.7)
@@ -393,6 +432,7 @@ struct ComposeBoard: View {
     @State private var marker = false
     @State private var tab = 0
     @State private var page = 1
+    @Environment(\.autoplayTick) private var tick
 
     var body: some View {
         Board(size: size) {
@@ -449,6 +489,17 @@ struct ComposeBoard: View {
                 .font(.drawablyPen(22))
                 .foregroundStyle(Palette.pen)
                 .piece(top: 8, left: 40, rotate: 3)
+        }
+        .onChange(of: tick) { _, t in
+            switch t % autoplayCycle {
+            case 18: tab = 1
+            case 19: marker = true
+            case 20: page = 2
+            case 21: tab = 2
+            case 22: pen = false
+            case 25: tab = 0; marker = false; page = 1; pen = true
+            default: break
+            }
         }
     }
 }
