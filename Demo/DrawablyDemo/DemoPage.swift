@@ -291,7 +291,7 @@ struct InstallBoard: View {
     var size: CGSize
     @State private var flash = CopyFlash()
 
-    private let command = ".package(path: \"DrawablySwiftUI\")"
+    private let command = ".package(url: \"https://github.com/hemal08ce094/DrawablySwiftUI\", branch: \"main\")"
 
     var body: some View {
         let wide = size.width > 720

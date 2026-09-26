@@ -2,7 +2,7 @@
 
 Native SwiftUI port of drawably: hand-drawn controls, a fresh seeded pen sketch per mount, strokes boiling on one shared 1200ms clock. Same renderer as the JS library, bit for bit: a seed draws the same strokes on both.
 
-Add the package (`DrawablySwiftUI`), then `import Drawably`. iOS 18, macOS 15, visionOS 2. Inter, Geist Mono and the optional Drawably Pen font are bundled.
+Add the package (`https://github.com/hemal08ce094/DrawablySwiftUI`, branch `main`), then `import Drawably`. iOS 18, macOS 15, visionOS 2. Inter, Geist Mono and the optional Drawably Pen font are bundled.
 
 ## Controls
 
